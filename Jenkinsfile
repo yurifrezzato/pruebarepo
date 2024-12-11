@@ -7,31 +7,33 @@ pipeline {
     stages {
         stage('Get Code') {
             steps {
-                echo 'Hola desde el primer stage'
+                echo 'Hola desde el primer stage';
 
-                echo 'Node info'
+                echo 'Node info';
                 sh '''
                     whoami
                     hostname
                 '''
 
-                echo 'Stage execution'
-                git 'https://github.com/yurifrezzato/pruebarepo.git'
-                sh 'ls -la'
-                echo "WORKSPACE: ${WORKSPACE}"
+                echo 'Stage execution';
+                git 'https://github.com/yurifrezzato/pruebarepo.git';
+                sh 'ls -la';
+                echo "WORKSPACE: ${WORKSPACE}";
+
+                stash name: "github_code", includes: "**";
             }
         }
         
         stage('Build') {
             steps {
-                echo 'Node info'
+                echo 'Node info';
                 sh '''
                     whoami
                     hostname
                 '''
 
-                echo 'Stage execution'
-                echo 'No hago nada'
+                echo 'Stage execution';
+                echo 'No hago nada';
             }
         }
         
@@ -43,13 +45,14 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info'
+                            echo 'Node info';
                             sh '''
                                 whoami
                                 hostname
                             '''
 
-                            echo 'Stage execution'
+                            echo 'Stage execution';
+                            unstash "github_code";
                             sh'''
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-unit.xml test/unit
@@ -58,7 +61,10 @@ pipeline {
                     }
                     post {
                         always {
-                            cleanWs()
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "unit_pytest", includes: "result-unit.xml";
                         }
                     }
                 }
@@ -69,13 +75,14 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info'
+                            echo 'Node info';
                             sh '''
                                 whoami
                                 hostname
                             '''
 
-                            echo 'Stage execution'
+                            echo 'Stage execution';
+                            unstash "github_code";
                             sh'''
                                 export FLASK_APP=app/api.py
                                 flask run &
@@ -88,7 +95,10 @@ pipeline {
                     }
                     post {
                         always {
-                            cleanWs()
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "service_pytest", includes: "result-rest.xml";
                         }
                     }
                 }
@@ -97,20 +107,22 @@ pipeline {
         
         stage('Result') {
             steps {
-                echo 'Node info'
+                echo 'Node info';
                 sh '''
                     whoami
                     hostname
                 '''
 
-                echo 'Stage execution'
-                junit 'result*.xml'
+                echo 'Stage execution';
+                unstash "unit_pytest";
+                unstash "service_pytest";
+                junit 'result*.xml';
             }
         }
     }
     post {
         always {
-            cleanWs()
+            cleanWs();
         }
     }
 }
