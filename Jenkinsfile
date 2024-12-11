@@ -56,6 +56,11 @@ pipeline {
                             '''
                         }
                     }
+                    post {
+                        always {
+                            cleanWs()
+                        }
+                    }
                 }
                 
                 stage('Service') {
@@ -81,6 +86,11 @@ pipeline {
                             '''
                         }
                     }
+                    post {
+                        always {
+                            cleanWs()
+                        }
+                    }
                 }
             }
         }
@@ -100,7 +110,7 @@ pipeline {
     }
     post {
         always {
-            cleanWs() 
+            cleanWs()
         }
     }
 }
