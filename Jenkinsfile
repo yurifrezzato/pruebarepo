@@ -1,12 +1,19 @@
 pipeline {
-    agent {
-        label 'linux'
-    }
+    agent none
 
     stages {
         stage('Get Code') {
+            agent any
             steps {
                 echo 'Hola desde el primer stage'
+
+                echo 'Node info'
+                sh '''
+                    whoami
+                    hostname
+                '''
+
+                echo 'Stage execution'
                 // git 'https://github.com/yurifrezzato/pruebarepo.git'
                 sh 'ls -la'
                 echo "WORKSPACE: ${WORKSPACE}"
@@ -14,7 +21,17 @@ pipeline {
         }
         
         stage('Build') {
+            agent {
+                label 'any'
+            }
             steps {
+                echo 'Node info'
+                sh '''
+                    whoami
+                    hostname
+                '''
+
+                echo 'Stage execution'
                 echo 'No hago nada'
             }
         }
@@ -22,8 +39,18 @@ pipeline {
         stage('Tests') {
             parallel {
                 stage('Unit') {
+                    agent {
+                        label 'agent1'
+                    }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            echo 'Node info'
+                            sh '''
+                                whoami
+                                hostname
+                            '''
+
+                            echo 'Stage execution'
                             sh'''
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-unit.xml test/unit
@@ -33,8 +60,18 @@ pipeline {
                 }
                 
                 stage('Service') {
+                    agent {
+                        label 'agent2'
+                    }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            echo 'Node info'
+                            sh '''
+                                whoami
+                                hostname
+                            '''
+
+                            echo 'Stage execution'
                             sh'''
                                 export FLASK_APP=app/api.py
                                 flask run &
@@ -50,7 +87,17 @@ pipeline {
         }
         
         stage('Result') {
+            agent {
+                label 'any'
+            }
             steps {
+                echo 'Node info'
+                sh '''
+                    whoami
+                    hostname
+                '''
+
+                echo 'Stage execution'
                 junit 'result*.xml'
             }
         }
