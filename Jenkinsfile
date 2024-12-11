@@ -56,11 +56,12 @@ pipeline {
                             sh'''
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-unit.xml test/unit
+                                
                             '''
                         }
                     }
                     post {
-                        always {
+                        cleanup {
                             cleanWs();
                         }
                         success {
@@ -94,7 +95,7 @@ pipeline {
                         }
                     }
                     post {
-                        always {
+                        cleanup {
                             cleanWs();
                         }
                         success {
@@ -121,7 +122,7 @@ pipeline {
         }
     }
     post {
-        always {
+        cleanup {
             cleanWs();
         }
     }
