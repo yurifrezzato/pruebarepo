@@ -1,11 +1,13 @@
 pipeline {
-    agent any
+    agent {
+        label 'linux'
+    }
 
     stages {
         stage('Get Code') {
             steps {
                 echo 'Hola desde el primer stage'
-                git 'https://github.com/yurifrezzato/pruebarepo.git'
+                // git 'https://github.com/yurifrezzato/pruebarepo.git'
                 sh 'ls -la'
                 echo "WORKSPACE: ${WORKSPACE}"
             }
@@ -36,7 +38,7 @@ pipeline {
                             sh'''
                                 export FLASK_APP=app/api.py
                                 flask run &
-                                java -jar /var/jenkins_home/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
+                                java -jar /home/jenkins/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
                                 sleep 5
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-rest.xml test/rest
