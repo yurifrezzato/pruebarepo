@@ -21,9 +21,7 @@ pipeline {
         }
         
         stage('Build') {
-            agent {
-                label 'any'
-            }
+            agent any
             steps {
                 echo 'Node info'
                 sh '''
@@ -87,9 +85,7 @@ pipeline {
         }
         
         stage('Result') {
-            agent {
-                label 'any'
-            }
+            agent any
             steps {
                 echo 'Node info'
                 sh '''
