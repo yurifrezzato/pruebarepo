@@ -1,9 +1,11 @@
 pipeline {
-    agent none
+    agent any
+    options {
+        skipDefaultCheckout true
+    }
 
     stages {
         stage('Get Code') {
-            agent any
             steps {
                 echo 'Hola desde el primer stage'
 
@@ -14,14 +16,13 @@ pipeline {
                 '''
 
                 echo 'Stage execution'
-                // git 'https://github.com/yurifrezzato/pruebarepo.git'
+                git 'https://github.com/yurifrezzato/pruebarepo.git'
                 sh 'ls -la'
                 echo "WORKSPACE: ${WORKSPACE}"
             }
         }
         
         stage('Build') {
-            agent any
             steps {
                 echo 'Node info'
                 sh '''
@@ -85,7 +86,6 @@ pipeline {
         }
         
         stage('Result') {
-            agent any
             steps {
                 echo 'Node info'
                 sh '''
