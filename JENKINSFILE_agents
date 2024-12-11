@@ -9,16 +9,16 @@ pipeline {
             steps {
                 echo 'Hola desde el primer stage';
 
-                echo 'Node info';
+                echo 'Node info Get Code Stage';
                 sh '''
                     whoami
                     hostname
                 '''
+                echo "WORKSPACE: ${WORKSPACE}";
 
                 echo 'Stage execution';
                 git 'https://github.com/yurifrezzato/pruebarepo.git';
                 sh 'ls -la';
-                echo "WORKSPACE: ${WORKSPACE}";
 
                 stash name: "github_code", includes: "**";
             }
@@ -26,11 +26,12 @@ pipeline {
         
         stage('Build') {
             steps {
-                echo 'Node info';
+                echo 'Node info Build Stage';
                 sh '''
                     whoami
                     hostname
                 '''
+                echo "WORKSPACE: ${WORKSPACE}";
 
                 echo 'Stage execution';
                 echo 'No hago nada';
@@ -45,11 +46,12 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info';
+                            echo 'Node info Test Stage';
                             sh '''
                                 whoami
                                 hostname
                             '''
+                            echo "WORKSPACE: ${WORKSPACE}";
 
                             echo 'Stage execution';
                             unstash "github_code";
@@ -76,11 +78,12 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info';
+                            echo 'Node info Service Stage';
                             sh '''
                                 whoami
                                 hostname
                             '''
+                            echo "WORKSPACE: ${WORKSPACE}";
 
                             echo 'Stage execution';
                             unstash "github_code";
@@ -108,11 +111,12 @@ pipeline {
         
         stage('Result') {
             steps {
-                echo 'Node info';
+                echo 'Node info Result Stage';
                 sh '''
                     whoami
                     hostname
                 '''
+                echo "WORKSPACE: ${WORKSPACE}";
 
                 echo 'Stage execution';
                 unstash "unit_pytest";
