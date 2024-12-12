@@ -20,12 +20,7 @@ pipeline {
         
         stage('Build') {
             steps {
-                echo 'Node info Build Stage';
-                sh '''
-                    whoami
-                    hostname
-                '''
-                echo "WORKSPACE: ${WORKSPACE}";
+                get_info();
 
                 echo 'Stage execution';
                 echo 'No hago nada';
@@ -40,12 +35,7 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info Test Stage';
-                            sh '''
-                                whoami
-                                hostname
-                            '''
-                            echo "WORKSPACE: ${WORKSPACE}";
+                            get_info();
 
                             echo 'Stage execution';
                             unstash "github_code";
@@ -72,12 +62,7 @@ pipeline {
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            echo 'Node info Service Stage';
-                            sh '''
-                                whoami
-                                hostname
-                            '''
-                            echo "WORKSPACE: ${WORKSPACE}";
+                            get_info();
 
                             echo 'Stage execution';
                             unstash "github_code";
@@ -105,12 +90,7 @@ pipeline {
         
         stage('Result') {
             steps {
-                echo 'Node info Result Stage';
-                sh '''
-                    whoami
-                    hostname
-                '''
-                echo "WORKSPACE: ${WORKSPACE}";
+                get_info();
 
                 echo 'Stage execution';
                 unstash "unit_pytest";
