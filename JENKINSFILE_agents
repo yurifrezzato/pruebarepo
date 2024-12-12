@@ -8,13 +8,7 @@ pipeline {
         stage('Get Code') {
             steps {
                 echo 'Hola desde el primer stage';
-
-                echo 'Node info Get Code Stage';
-                sh '''
-                    whoami
-                    hostname
-                '''
-                echo "WORKSPACE: ${WORKSPACE}";
+                get_info();
 
                 echo 'Stage execution';
                 git 'https://github.com/yurifrezzato/pruebarepo.git';
@@ -130,4 +124,15 @@ pipeline {
             cleanWs();
         }
     }
+}
+
+def get_info() {
+    string st1_debug1 = sh (script: "whoami", returnStdout: true);
+    string st1_debug2 = sh (script: "hostname", returnStdout: true);
+
+    echo """
+        whoami: ${st1_debug1}\
+        hostname: ${st1_debug2}\
+        WORKSPACE: ${WORKSPACE}\
+    """
 }
