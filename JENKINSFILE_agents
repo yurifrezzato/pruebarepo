@@ -11,7 +11,7 @@ pipeline {
                 get_info();
 
                 echo 'Stage execution';
-                git branch: 'develop', poll: false, url: 'https://github.com/yurifrezzato/pruebarepo.git';
+                git branch: env.BRANCH_NAME, poll: false, url: 'https://github.com/yurifrezzato/pruebarepo.git';
                 sh 'ls -la';
 
                 stash name: "github_code", includes: "**";
