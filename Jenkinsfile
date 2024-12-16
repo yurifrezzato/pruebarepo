@@ -38,7 +38,7 @@ pipeline {
                             sh''' 
                                 export FLASK_APP=app/api.py
                                 flask run &
-                                java -jar /home/jenkins/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
+                                java -jar /var/jenkins_home/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
                             '''
 
                             // evaluate when services are up and running
