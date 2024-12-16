@@ -69,11 +69,11 @@ pipeline {
                     }
                 }
             }
+        }
 
-            stage('Result') {
-                steps {
-                    junit 'result*.xml'
-                }
+        stage('Result') {
+            steps {
+                junit 'result*.xml'
             }
         }
     }
