@@ -31,9 +31,6 @@ pipeline {
                 }
                 
                 stage('Service') {
-                    agent {
-                        label 'agent2'
-                    }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
 
@@ -68,14 +65,6 @@ pipeline {
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-rest.xml test/rest
                             '''
-                        }
-                    }
-                    post {
-                        cleanup {
-                            cleanWs();
-                        }
-                        success {
-                            stash name: "service_pytest", includes: "result-rest.xml";
                         }
                     }
                 }
