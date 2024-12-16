@@ -43,15 +43,15 @@ pipeline {
 
                             // evaluate when services are up and running
                             script {
-                                int w_port = 9090;
-                                int f_port = 5000;
+                                int w_port = 9090; //wiremock port
+                                int f_port = 5000; //flask port
                                 int w_port_out = 1;
                                 int f_port_out = 1;
 
                                 while(w_port_out!=0 || f_port_out!=0) {
+                                    sleep 1;
                                     w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
                                     f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
-                                    sleep 1;
                                     println "w_port_out: ${w_port_out}";
                                     println "f_port_out: ${f_port_out}";
                                 }
