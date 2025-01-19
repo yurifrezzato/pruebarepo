@@ -11,12 +11,11 @@ pipeline {
             }
         }
 
-        stage('Unit') {
+        stage('Unit with Coverage') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh'''
-                        export PYTHONPATH=${WORKSPACE}
-                        pytest --junitxml=result-unit.xml test/unit
+                        python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                     '''
                     junit 'result-unit.xml'
                 }
@@ -42,7 +41,6 @@ pipeline {
         stage('Coverage') {
             steps {
                 sh'''
-                    python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
                     python3 -m coverage xml
                 '''
 
