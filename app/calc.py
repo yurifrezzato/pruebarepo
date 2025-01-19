@@ -27,7 +27,6 @@ class Calculator:
 
     def power(self, x, y):
         self.check_types(x, y)
-        raise                                                TypeError
         return x ** y
 
     def check_types(self, x, y):
