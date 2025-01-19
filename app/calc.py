@@ -6,7 +6,7 @@ class InvalidPermissions(Exception):
 
 
 class Calculator:
-    def add(self, x, yssssssss):
+    def add(self, x, y):
         self.check_types(x, y)
         return x + y
 
