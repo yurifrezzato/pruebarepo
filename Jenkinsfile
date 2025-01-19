@@ -47,7 +47,7 @@ pipeline {
                 '''
 
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTarges: '100,0,85', lineCoverageTargets: '100,0,90'
+                    cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,85', lineCoverageTargets: '100,0,90'
                 }
             }
         }
