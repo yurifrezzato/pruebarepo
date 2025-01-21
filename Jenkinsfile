@@ -21,7 +21,7 @@ pipeline {
                 }
             }
         }
-            
+
         stage('Service') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -50,18 +50,22 @@ pipeline {
             }
         }
 
-        // stage('Static') {
-        //     steps {
-        //             sh'''
-        //                 flake8 --format=pylint app >falke8.out
-        //             '''
-        //             junit 'result-rest.xml'
+        stage('Static') {
+            steps {
+                sh'''
+                    python3 -m flake8 --exit-zero --format=pylint app >falke8.out
+                '''
 
-        //         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-        //             recordIssues tools: [flake8(name: 'Flake8', pattern: 'flake8.out')], qualityGates: [[threshold: 10, type: 'TOTAL', unestable: true], [threshold: 11, type: 'TOTAL', unestable: false]]
-        //         }
-        //     }
-        // }
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    recordIssues tools:
+                        [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                        qualityGates: [
+                            [threshold: 8, type: 'TOTAL', unestable: true],
+                            [threshold: 10, type: 'TOTAL', unestable: false]
+                        ]
+                }
+            }
+        }
     }
     post {
         cleanup {
