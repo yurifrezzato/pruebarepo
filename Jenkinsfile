@@ -53,15 +53,15 @@ pipeline {
         stage('Static') {
             steps {
                 sh'''
-                    python3 -m flake8 --exit-zero --format=pylint app >falke8.out
+                    python3 -m flake8 --exit-zero --format=pylint app > flake8.out
                 '''
 
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     recordIssues tools:
                         [flake8(name: 'Flake8', pattern: 'flake8.out')],
                         qualityGates: [
-                            [threshold: 8, type: 'TOTAL', unestable: true],
-                            [threshold: 10, type: 'TOTAL', unestable: false]
+                            [threshold: 8, type: 'TOTAL', unstable: true],
+                            [threshold: 10, type: 'TOTAL', unstable: false]
                         ]
                 }
             }
