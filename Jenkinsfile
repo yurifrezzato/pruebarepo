@@ -83,6 +83,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Performance') {
+            steps {
+                sh'''
+                    export FLASK_APP=app/api.py
+                    flask run &
+                    sleep 5
+                    /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                '''
+
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    perfReport sourceDataFiles: 'flask.jtl'
+                }
+            }
+        }
     }
     post {
         cleanup {
