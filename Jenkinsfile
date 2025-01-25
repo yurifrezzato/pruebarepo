@@ -40,11 +40,11 @@ pipeline {
 
         stage('Coverage') {
             steps {
-                sh'''
-                    python3 -m coverage xml
-                '''
-
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh'''
+                        python3 -m coverage xml
+                    '''
+
                     cobertura coberturaReportFile: 'coverage.xml', conditionalCoverageTargets: '100,0,90', lineCoverageTargets: '100,0,95'
                 }
             }
@@ -52,11 +52,11 @@ pipeline {
 
         stage('Static') {
             steps {
-                sh'''
-                    python3 -m flake8 --exit-zero --format=pylint app > flake8.out
-                '''
-
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh'''
+                        python3 -m flake8 --exit-zero --format=pylint app > flake8.out
+                    '''
+
                     recordIssues tools:
                         [flake8(name: 'Flake8', pattern: 'flake8.out')],
                         qualityGates: [
@@ -69,11 +69,11 @@ pipeline {
 
         stage('Security') {
             steps {
-                sh'''
-                    python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
-                '''
-
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh'''
+                        python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                    '''
+
                     recordIssues tools:
                         [pyLint(name: 'Bandit', pattern: 'bandit.out')],
                         qualityGates: [
@@ -86,14 +86,14 @@ pipeline {
 
         stage('Performance') {
             steps {
-                sh'''
-                    export FLASK_APP=app/api.py
-                    flask run &
-                    sleep 5
-                    /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
-                '''
-
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh'''
+                        export FLASK_APP=app/api.py
+                        flask run &
+                        sleep 5
+                        /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                    '''
+
                     perfReport sourceDataFiles: 'flask.jtl'
                 }
             }
