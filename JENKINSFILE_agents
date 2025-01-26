@@ -17,7 +17,7 @@ pipeline {
 
         stage('Parallel 1') {
             parallel {
-                /*stage('Unit') {
+                stage('Unit with coverage') {
                     agent {
                         label 'agent1'
                     }
@@ -37,9 +37,10 @@ pipeline {
                         }
                         success {
                             stash name: "unit_pytest", includes: "result-unit.xml";
+                            stash name: "unit_coverage", includes: ".coverage";
                         }
                     }
-                }*/
+                }
 
                 stage('Service') {
                     agent {
@@ -70,36 +71,7 @@ pipeline {
                     }
                 }
 
-// REMOVE #######################################
-                stage('Performance') {
-                    agent {
-                        label 'agent1'
-                    }
-                    steps {
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            get_info();
-                            unstash "github_code";
-
-                            sh'''
-                                export FLASK_APP=app/api.py
-                                flask run &
-                                sleep 5
-                                /home/jenkins/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
-                            '''
-                        }
-                    }
-                    post {
-                        cleanup {
-                            cleanWs();
-                        }
-                        success {
-                            stash name: "performance_flake8", includes: "flask.jtl";
-                        }
-                    }
-                }
-// END REMOVE #######################################
-
-                /*stage('Static') {
+                stage('Static') {
                     agent {
                         label 'agent3'
                     }
@@ -121,15 +93,11 @@ pipeline {
                             stash name: "static_flake8", includes: "flake8.out";
                         }
                     }
-                }*/
-            }
-        }
+                }
 
-        /*stage('Parallel 2') {
-            parallel {
-                stage('Coverage') {
+                stage('Security') {
                     agent {
-                        label 'agent1'
+                        label 'agent4'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -137,7 +105,7 @@ pipeline {
                             unstash "github_code";
 
                             sh'''
-                                python3 -m coverage xml
+                                python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                             '''
                         }
                     }
@@ -146,14 +114,14 @@ pipeline {
                             cleanWs();
                         }
                         success {
-                            stash name: "coverage_coverage", includes: "coverage.xml";
+                            stash name: "security_bandit", includes: "bandit.out";
                         }
                     }
                 }
 
                 stage('Performance') {
                     agent {
-                        label 'agent2'
+                        label 'agent5'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -164,7 +132,7 @@ pipeline {
                                 export FLASK_APP=app/api.py
                                 flask run &
                                 sleep 5
-                                /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                                /home/jenkins/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
                             '''
                         }
                     }
@@ -173,25 +141,72 @@ pipeline {
                             cleanWs();
                         }
                         success {
-                            stash name: "performance_flake8", includes: "flask.jtl";
+                            stash name: "performance_jmeter", includes: "flask.jtl";
                         }
                     }
                 }
             }
-        }*/
+        }
+
+        stage('Coverage') {
+            agent {
+                label 'agent1'
+            }
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    get_info();
+                    // unstash "github_code";
+                    unstash "unit_coverage";
+
+                    sh'''
+                        python3 -m coverage xml
+                    '''
+                }
+            }
+            post {
+                cleanup {
+                    cleanWs();
+                }
+                success {
+                    stash name: "coverage_coverage", includes: "coverage.xml";
+                }
+            }
+        }
 
         stage('Result') {
             steps {
                 get_info();
 
-                // unstash "unit_pytest";
+                // unit_pytest and service_pytest plugins
+                unstash "unit_pytest";
                 unstash "service_pytest";
-                // unstash "static_flake8";
-                // unstash "coverage_coverage";
-                unstash "performance_flake8";
-
                 junit 'result*.xml';
+
+                // static_flake8 plugin
+                unstash "static_flake8";
+                recordIssues tools:
+                    [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                    qualityGates: [
+                        [threshold: 8, type: 'TOTAL', unstable: true],
+                        [threshold: 10, type: 'TOTAL', unstable: false]
+                    ]
+
+                // security_bandit plugin
+                unstash "security_bandit";
+                recordIssues tools:
+                    [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                    qualityGates: [
+                        [threshold: 2, type: 'TOTAL', unstable: true],
+                        [threshold: 4, type: 'TOTAL', unstable: false]
+                    ]
+
+                // performance_jmeter plugin
+                unstash "performance_jmeter";
                 perfReport sourceDataFiles: 'flask.jtl'
+
+                // coverage_coverage plugin
+                unstash "coverage_coverage";
+                cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,0,95', conditionalCoverageTargets: '100,0,90';
 
             }
         }
