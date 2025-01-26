@@ -155,7 +155,7 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     get_info();
-                    // unstash "github_code";
+                    unstash "github_code";
                     unstash "unit_coverage";
 
                     sh'''
