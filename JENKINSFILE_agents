@@ -7,42 +7,27 @@ pipeline {
     stages {
         stage('Get Code') {
             steps {
-                echo 'Hola desde el primer stage';
                 get_info();
-
-                echo 'Stage execution';
                 git 'https://github.com/yurifrezzato/pruebarepo.git';
                 sh 'ls -la';
 
                 stash name: "github_code", includes: "**";
             }
         }
-        
-        stage('Build') {
-            steps {
-                get_info();
 
-                echo 'Stage execution';
-                echo 'No hago nada';
-            }
-        }
-        
-        stage('Tests') {
+        stage('Parallel 1') {
             parallel {
-                stage('Unit') {
+                /*stage('Unit') {
                     agent {
                         label 'agent1'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             get_info();
-
-                            echo 'Stage execution';
                             unstash "github_code";
+
                             sh'''
-                                export PYTHONPATH=${WORKSPACE}
-                                pytest --junitxml=result-unit.xml test/unit
-                                
+                                python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                             '''
                         }
                     }
@@ -54,8 +39,8 @@ pipeline {
                             stash name: "unit_pytest", includes: "result-unit.xml";
                         }
                     }
-                }
-                
+                }*/
+
                 stage('Service') {
                     agent {
                         label 'agent2'
@@ -63,9 +48,8 @@ pipeline {
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             get_info();
-
-                            echo 'Stage execution';
                             unstash "github_code";
+
                             sh'''
                                 export FLASK_APP=app/api.py
                                 flask run &
@@ -85,17 +69,129 @@ pipeline {
                         }
                     }
                 }
+
+// REMOVE #######################################
+                stage('Performance') {
+                    agent {
+                        label 'agent1'
+                    }
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            get_info();
+                            unstash "github_code";
+
+                            sh'''
+                                export FLASK_APP=app/api.py
+                                flask run &
+                                sleep 5
+                                /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                            '''
+                        }
+                    }
+                    post {
+                        cleanup {
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "performance_flake8", includes: "flask.jtl";
+                        }
+                    }
+                }
+// END REMOVE #######################################
+
+                /*stage('Static') {
+                    agent {
+                        label 'agent3'
+                    }
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            get_info();
+                            unstash "github_code";
+
+                            sh'''
+                                python3 -m flake8 --exit-zero --format=pylint app > flake8.out
+                            '''
+                        }
+                    }
+                    post {
+                        cleanup {
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "static_flake8", includes: "flake8.out";
+                        }
+                    }
+                }*/
             }
         }
-        
+
+        /*stage('Parallel 2') {
+            parallel {
+                stage('Coverage') {
+                    agent {
+                        label 'agent1'
+                    }
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            get_info();
+                            unstash "github_code";
+
+                            sh'''
+                                python3 -m coverage xml
+                            '''
+                        }
+                    }
+                    post {
+                        cleanup {
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "coverage_coverage", includes: "coverage.xml";
+                        }
+                    }
+                }
+
+                stage('Performance') {
+                    agent {
+                        label 'agent2'
+                    }
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            get_info();
+                            unstash "github_code";
+
+                            sh'''
+                                export FLASK_APP=app/api.py
+                                flask run &
+                                sleep 5
+                                /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                            '''
+                        }
+                    }
+                    post {
+                        cleanup {
+                            cleanWs();
+                        }
+                        success {
+                            stash name: "performance_flake8", includes: "flask.jtl";
+                        }
+                    }
+                }
+            }
+        }*/
+
         stage('Result') {
             steps {
                 get_info();
 
-                echo 'Stage execution';
-                unstash "unit_pytest";
+                // unstash "unit_pytest";
                 unstash "service_pytest";
-                junit 'result*.xml';
+                // unstash "static_flake8";
+                // unstash "coverage_coverage";
+                unstash "performance_flake8";
+
+                // junit 'result*.xml';
+
             }
         }
     }
