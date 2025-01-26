@@ -84,7 +84,7 @@ pipeline {
                                 export FLASK_APP=app/api.py
                                 flask run &
                                 sleep 5
-                                /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
+                                /home/jenkins/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
                             '''
                         }
                     }
@@ -190,7 +190,8 @@ pipeline {
                 // unstash "coverage_coverage";
                 unstash "performance_flake8";
 
-                // junit 'result*.xml';
+                junit 'result*.xml';
+                perfReport sourceDataFiles: 'flask.jtl'
 
             }
         }
