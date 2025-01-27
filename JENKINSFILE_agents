@@ -202,7 +202,7 @@ pipeline {
 
                 // performance_jmeter plugin
                 unstash "performance_jmeter";
-                perfReport sourceDataFiles: 'flask.jtl'
+                perfReport sourceDataFiles: 'flask.jtl';
 
                 // coverage_coverage plugin
                 unstash "coverage_coverage";
