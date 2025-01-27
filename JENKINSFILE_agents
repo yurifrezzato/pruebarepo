@@ -44,7 +44,7 @@ pipeline {
 
                 stage('Service') {
                     agent {
-                        label 'agent2'
+                        label 'agent1'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -73,7 +73,7 @@ pipeline {
 
                 stage('Static') {
                     agent {
-                        label 'agent3'
+                        label 'agent2'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -97,7 +97,7 @@ pipeline {
 
                 stage('Security') {
                     agent {
-                        label 'agent4'
+                        label 'agent2'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
@@ -121,7 +121,7 @@ pipeline {
 
                 stage('Performance') {
                     agent {
-                        label 'agent5'
+                        label 'agent3'
                     }
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
