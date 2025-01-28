@@ -18,7 +18,6 @@ pipeline {
                         python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                     '''
                     junit 'result-unit.xml'
-                    // unstash .coverage
                 }
             }
         }
@@ -42,12 +41,11 @@ pipeline {
         stage('Coverage') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    // unstash .coverage
                     sh'''
                         python3 -m coverage xml
                     '''
 
-                    cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,85,95', conditionalCoverageTargets: '100,80,90'
+                    cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,85,95', conditionalCoverageTargets: '100,80,90';
                 }
             }
         }
