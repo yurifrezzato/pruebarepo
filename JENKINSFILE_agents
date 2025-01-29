@@ -237,7 +237,7 @@ pipeline {
     //     cleanup {
     //         cleanWs();
     //     }
-    // }
+    }
 }
 
 def get_info() {
