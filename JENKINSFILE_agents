@@ -17,7 +17,7 @@ pipeline {
 
         stage('Parallel 1') {
             parallel {
-                stage('Unit with coverage') {
+                stage('Unit') {
                     agent {
                         label 'agent1'
                     }
@@ -29,6 +29,8 @@ pipeline {
                             sh'''
                                 python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                             '''
+
+                            junit 'result-unit.xml';
                         }
                     }
                     post {
@@ -36,7 +38,7 @@ pipeline {
                             cleanWs();
                         }
                         success {
-                            stash name: "unit_pytest", includes: "result-unit.xml";
+                            // stash name: "unit_pytest", includes: "result-unit.xml";
                             stash name: "unit_coverage", includes: ".coverage";
                         }
                     }
@@ -59,15 +61,17 @@ pipeline {
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-rest.xml test/rest
                             '''
+
+                            junit 'result-rest.xml';
                         }
                     }
                     post {
                         cleanup {
                             cleanWs();
                         }
-                        success {
-                            stash name: "service_pytest", includes: "result-rest.xml";
-                        }
+                        // success {
+                        //     stash name: "service_pytest", includes: "result-rest.xml";
+                        // }
                     }
                 }
 
@@ -83,15 +87,22 @@ pipeline {
                             sh'''
                                 python3 -m flake8 --exit-zero --format=pylint app > flake8.out
                             '''
+
+                            recordIssues tools:
+                                [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                                qualityGates: [
+                                    [threshold: 8, type: 'TOTAL', unstable: true],
+                                    [threshold: 10, type: 'TOTAL', unstable: false]
+                                ]
                         }
                     }
                     post {
                         cleanup {
                             cleanWs();
                         }
-                        success {
-                            stash name: "static_flake8", includes: "flake8.out";
-                        }
+                        // success {
+                        //     stash name: "static_flake8", includes: "flake8.out";
+                        // }
                     }
                 }
 
@@ -107,15 +118,22 @@ pipeline {
                             sh'''
                                 python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                             '''
+
+                            recordIssues tools:
+                                [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                                qualityGates: [
+                                    [threshold: 2, type: 'TOTAL', unstable: true],
+                                    [threshold: 4, type: 'TOTAL', unstable: false]
+                                ]
                         }
                     }
                     post {
                         cleanup {
                             cleanWs();
                         }
-                        success {
-                            stash name: "security_bandit", includes: "bandit.out";
-                        }
+                        // success {
+                        //     stash name: "security_bandit", includes: "bandit.out";
+                        // }
                     }
                 }
 
@@ -134,15 +152,17 @@ pipeline {
                                 sleep 5
                                 /home/jenkins/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
                             '''
+
+                            perfReport sourceDataFiles: 'flask.jtl';
                         }
                     }
                     post {
                         cleanup {
                             cleanWs();
                         }
-                        success {
-                            stash name: "performance_jmeter", includes: "flask.jtl";
-                        }
+                        // success {
+                        //     stash name: "performance_jmeter", includes: "flask.jtl";
+                        // }
                     }
                 }
             }
@@ -161,61 +181,63 @@ pipeline {
                     sh'''
                         python3 -m coverage xml
                     '''
+
+                    cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,0,95', conditionalCoverageTargets: '100,0,90', onlyStable: false;
                 }
             }
             post {
                 cleanup {
                     cleanWs();
                 }
-                success {
-                    stash name: "coverage_coverage", includes: "coverage.xml";
-                }
+                // success {
+                //     stash name: "coverage_coverage", includes: "coverage.xml";
+                // }
             }
         }
 
-        stage('Result') {
-            steps {
-                get_info();
+        // stage('Result') {
+        //     steps {
+        //         get_info();
 
                 // unit_pytest and service_pytest plugins
-                unstash "unit_pytest";
-                unstash "service_pytest";
-                junit 'result*.xml';
+                // unstash "unit_pytest";
+                // unstash "service_pytest";
+                // junit 'result*.xml';
 
                 // static_flake8 plugin
-                unstash "static_flake8";
-                recordIssues tools:
-                    [flake8(name: 'Flake8', pattern: 'flake8.out')],
-                    qualityGates: [
-                        [threshold: 8, type: 'TOTAL', unstable: true],
-                        [threshold: 10, type: 'TOTAL', unstable: false]
-                    ]
+                // unstash "static_flake8";
+                // recordIssues tools:
+                //     [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                //     qualityGates: [
+                //         [threshold: 8, type: 'TOTAL', unstable: true],
+                //         [threshold: 10, type: 'TOTAL', unstable: false]
+                //     ]
 
                 // security_bandit plugin
-                unstash "security_bandit";
-                recordIssues tools:
-                    [pyLint(name: 'Bandit', pattern: 'bandit.out')],
-                    qualityGates: [
-                        [threshold: 2, type: 'TOTAL', unstable: true],
-                        [threshold: 4, type: 'TOTAL', unstable: false]
-                    ]
+                // unstash "security_bandit";
+                // recordIssues tools:
+                //     [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                //     qualityGates: [
+                //         [threshold: 2, type: 'TOTAL', unstable: true],
+                //         [threshold: 4, type: 'TOTAL', unstable: false]
+                //     ]
 
                 // performance_jmeter plugin
-                unstash "performance_jmeter";
-                perfReport sourceDataFiles: 'flask.jtl';
+                // unstash "performance_jmeter";
+                // perfReport sourceDataFiles: 'flask.jtl';
 
                 // coverage_coverage plugin
-                unstash "coverage_coverage";
-                cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,0,95', conditionalCoverageTargets: '100,0,90', onlyStable: false;
+                // unstash "coverage_coverage";
+                // cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,0,95', conditionalCoverageTargets: '100,0,90', onlyStable: false;
 
-            }
-        }
-    }
-    post {
-        cleanup {
-            cleanWs();
-        }
-    }
+    //         }
+    //     }
+    // }
+    // post {
+    //     cleanup {
+    //         cleanWs();
+    //     }
+    // }
 }
 
 def get_info() {
