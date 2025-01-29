@@ -45,7 +45,7 @@ pipeline {
                         python3 -m coverage xml
                     '''
 
-                    cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,85,95', conditionalCoverageTargets: '100,80,90';
+                    cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,85,95', conditionalCoverageTargets: '100,80,90', onlyStable: false;
                 }
             }
         }
