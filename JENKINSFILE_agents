@@ -38,7 +38,6 @@ pipeline {
                             cleanWs();
                         }
                         success {
-                            // stash name: "unit_pytest", includes: "result-unit.xml";
                             stash name: "unit_coverage", includes: ".coverage";
                         }
                     }
@@ -69,9 +68,6 @@ pipeline {
                         cleanup {
                             cleanWs();
                         }
-                        // success {
-                        //     stash name: "service_pytest", includes: "result-rest.xml";
-                        // }
                     }
                 }
 
@@ -100,9 +96,6 @@ pipeline {
                         cleanup {
                             cleanWs();
                         }
-                        // success {
-                        //     stash name: "static_flake8", includes: "flake8.out";
-                        // }
                     }
                 }
 
@@ -131,9 +124,6 @@ pipeline {
                         cleanup {
                             cleanWs();
                         }
-                        // success {
-                        //     stash name: "security_bandit", includes: "bandit.out";
-                        // }
                     }
                 }
 
@@ -160,9 +150,6 @@ pipeline {
                         cleanup {
                             cleanWs();
                         }
-                        // success {
-                        //     stash name: "performance_jmeter", includes: "flask.jtl";
-                        // }
                     }
                 }
             }
@@ -189,54 +176,8 @@ pipeline {
                 cleanup {
                     cleanWs();
                 }
-                // success {
-                //     stash name: "coverage_coverage", includes: "coverage.xml";
-                // }
             }
         }
-
-        // stage('Result') {
-        //     steps {
-        //         get_info();
-
-                // unit_pytest and service_pytest plugins
-                // unstash "unit_pytest";
-                // unstash "service_pytest";
-                // junit 'result*.xml';
-
-                // static_flake8 plugin
-                // unstash "static_flake8";
-                // recordIssues tools:
-                //     [flake8(name: 'Flake8', pattern: 'flake8.out')],
-                //     qualityGates: [
-                //         [threshold: 8, type: 'TOTAL', unstable: true],
-                //         [threshold: 10, type: 'TOTAL', unstable: false]
-                //     ]
-
-                // security_bandit plugin
-                // unstash "security_bandit";
-                // recordIssues tools:
-                //     [pyLint(name: 'Bandit', pattern: 'bandit.out')],
-                //     qualityGates: [
-                //         [threshold: 2, type: 'TOTAL', unstable: true],
-                //         [threshold: 4, type: 'TOTAL', unstable: false]
-                //     ]
-
-                // performance_jmeter plugin
-                // unstash "performance_jmeter";
-                // perfReport sourceDataFiles: 'flask.jtl';
-
-                // coverage_coverage plugin
-                // unstash "coverage_coverage";
-                // cobertura coberturaReportFile: 'coverage.xml', lineCoverageTargets: '100,0,95', conditionalCoverageTargets: '100,0,90', onlyStable: false;
-
-    //         }
-    //     }
-    // }
-    // post {
-    //     cleanup {
-    //         cleanWs();
-    //     }
     }
 }
 
