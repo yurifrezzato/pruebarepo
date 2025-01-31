@@ -116,32 +116,23 @@ pipeline {
 }
 
 def check_wiremock() {
-    int w_port = 9090; //wiremock port
-    // int f_port = 5000; //flask port
+    println "### Checking Wiremock Service ###"
+    int w_port = 9090;
     int w_port_out = 1;
-    // int f_port_out = 1;
- //if puerto != entonces revisar puerto ## cambiar log del ejercicio
     while(w_port_out!=0) {
         sleep 1;
         w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
-        // f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
-        println "w_port_out: ${w_port_out}";
-        // println "f_port_out: ${f_port_out}";
     }
+    println "### End checking Wiremocj Service. RC: ${w_port_out} ###";
 }
 
 def check_flask() {
-    // int w_port = 9090; //wiremock port
-    int f_port = 5000; //flask port
-    // int w_port_out = 1;
+    println "### Checking Flask Service ###"
+    int f_port = 5000;
     int f_port_out = 1;
- //if puerto != entonces revisar puerto ## cambiar log del ejercicio
     while(f_port_out!=0) {
         sleep 1;
-        // w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
         f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
-        // println "w_port_out: ${w_port_out}";
-        println "f_port_out: ${f_port_out}";
     }
+    println "### Checking Flask Service. RC: ${f_port_out} ###"
 }
-
