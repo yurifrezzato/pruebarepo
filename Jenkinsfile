@@ -123,7 +123,7 @@ def check_wiremock() {
         sleep 1;
         w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
     }
-    println "### End checking Wiremocj Service. RC: ${w_port_out} ###";
+    println "### End checking Wiremock Service. RC: ${w_port_out} ###";
 }
 
 def check_flask() {
@@ -134,5 +134,5 @@ def check_flask() {
         sleep 1;
         f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
     }
-    println "### Checking Flask Service. RC: ${f_port_out} ###"
+    println "### End checking Flask Service. RC: ${f_port_out} ###"
 }
