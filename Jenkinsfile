@@ -14,7 +14,7 @@ pipeline {
         stage('Unit with Coverage') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         python3 -m coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
                     '''
                     junit 'result-unit.xml'
@@ -25,11 +25,16 @@ pipeline {
         stage('Service') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         export FLASK_APP=app/api.py
                         flask run &
                         java -jar /var/jenkins_home/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
-                        sleep 5
+                    '''
+
+                    check_flask();
+                    check_wiremock();
+
+                    sh '''
                         export PYTHONPATH=${WORKSPACE}
                         pytest --junitxml=result-rest.xml test/rest
                     '''
@@ -41,7 +46,7 @@ pipeline {
         stage('Coverage') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         python3 -m coverage xml
                     '''
 
@@ -53,7 +58,7 @@ pipeline {
         stage('Static') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         python3 -m flake8 --exit-zero --format=pylint app > flake8.out
                     '''
 
@@ -70,7 +75,7 @@ pipeline {
         stage('Security') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                     '''
 
@@ -87,10 +92,14 @@ pipeline {
         stage('Performance') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh'''
+                    sh '''
                         export FLASK_APP=app/api.py
                         flask run &
-                        sleep 5
+                    '''
+
+                    check_flask();
+
+                    sh '''
                         /var/jenkins_home/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
                     '''
 
@@ -105,3 +114,34 @@ pipeline {
         }
     }
 }
+
+def check_wiremock() {
+    int w_port = 9090; //wiremock port
+    // int f_port = 5000; //flask port
+    int w_port_out = 1;
+    // int f_port_out = 1;
+ //if puerto != entonces revisar puerto ## cambiar log del ejercicio
+    while(w_port_out!=0) {
+        sleep 1;
+        w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
+        // f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
+        println "w_port_out: ${w_port_out}";
+        // println "f_port_out: ${f_port_out}";
+    }
+}
+
+def check_flask() {
+    // int w_port = 9090; //wiremock port
+    int f_port = 5000; //flask port
+    // int w_port_out = 1;
+    int f_port_out = 1;
+ //if puerto != entonces revisar puerto ## cambiar log del ejercicio
+    while(f_port_out!=0) {
+        sleep 1;
+        // w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
+        f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
+        // println "w_port_out: ${w_port_out}";
+        println "f_port_out: ${f_port_out}";
+    }
+}
+
