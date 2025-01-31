@@ -52,11 +52,16 @@ pipeline {
                             get_info();
                             unstash "github_code";
 
-                            sh'''
+                            sh '''
                                 export FLASK_APP=app/api.py
                                 flask run &
                                 java -jar /home/jenkins/wiremock-standalone-3.10.0.jar --port 9090 --root-dir ${WORKSPACE}/test/wiremock &
-                                sleep 5
+                            '''
+
+                            check_flask();
+                            check_wiremock();
+
+                            sh '''
                                 export PYTHONPATH=${WORKSPACE}
                                 pytest --junitxml=result-rest.xml test/rest
                             '''
@@ -80,7 +85,7 @@ pipeline {
                             get_info();
                             unstash "github_code";
 
-                            sh'''
+                            sh '''
                                 python3 -m flake8 --exit-zero --format=pylint app > flake8.out
                             '''
 
@@ -108,7 +113,7 @@ pipeline {
                             get_info();
                             unstash "github_code";
 
-                            sh'''
+                            sh '''
                                 python3 -m bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                             '''
 
@@ -136,10 +141,14 @@ pipeline {
                             get_info();
                             unstash "github_code";
 
-                            sh'''
+                            sh '''
                                 export FLASK_APP=app/api.py
                                 flask run &
-                                sleep 5
+                            '''
+
+                            check_flask();
+
+                            sh '''
                                 /home/jenkins/apache-jmeter-5.6.3/bin/jmeter.sh -n -t test/jmeter/flask.jmx -f -l flask.jtl
                             '''
 
@@ -190,4 +199,26 @@ def get_info() {
         hostname: ${st1_debug2}\
         WORKSPACE: ${WORKSPACE}\
     """
+}
+
+def check_wiremock() {
+    println "### Checking Wiremock Service ###"
+    int w_port = 9090;
+    int w_port_out = 1;
+    while(w_port_out!=0) {
+        sleep 1;
+        w_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${w_port}";
+    }
+    println "### End checking Wiremock Service. RC: ${w_port_out} ###";
+}
+
+def check_flask() {
+    println "### Checking Flask Service ###"
+    int f_port = 5000;
+    int f_port_out = 1;
+    while(f_port_out!=0) {
+        sleep 1;
+        f_port_out = sh returnStatus: true, script: "netstat -tuplen | grep ${f_port}";
+    }
+    println "### End checking Flask Service. RC: ${f_port_out} ###"
 }
