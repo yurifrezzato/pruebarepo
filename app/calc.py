@@ -20,8 +20,8 @@ class Calculator:
 
     def divide(self, x, y):
         self.check_types(x, y)
-        # if y == 0:
-        #     raise                                                TypeError("Division by zero is not possible")
+        if y == 0:
+            raise                                                TypeError("Division by zero is not possible")
 
         return x / y
 

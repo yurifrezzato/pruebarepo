@@ -5,7 +5,15 @@ pipeline {
         stage('Get Code') {
             steps {
                 echo 'Hola desde el primer stage'
-                git 'https://github.com/yurifrezzato/pruebarepo.git'
+                checkout scmGit(
+                    branches: [[
+                        name: 'feature_fix_coverage'
+                    ]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/yurifrezzato/pruebarepo.git'
+                    ]]
+                )
+
                 sh 'ls -la'
                 echo "WORKSPACE: ${WORKSPACE}"
             }
